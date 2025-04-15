@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple E-Commerce</title>
+</head>
+<body>
+  <h1>Products</h1>
+  <div id="product-list"></div>
+
+  <h2>Your Cart</h2>
+  <ul id="cart-list"></ul>
+
+  <script>
+    async function fetchProducts() {
+      const res = await fetch('http://localhost:3000/products');
+      const products = await res.json();
+      const container = document.getElementById('product-list');
+      container.innerHTML = '';
+      products.forEach(product => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <strong>${product.name}</strong> - $${product.price} 
+          (${product.stock} in stock)
+          <button onclick="addToCart(${product.id})">Add to Cart</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function addToCart(productId) {
+      const res = await fetch('http://localhost:3000/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: productId })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert("Item added to cart!");
+        fetchProducts();
+        fetchCart();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function fetchCart() {
+      const res = await fetch('http://localhost:3000/cart');
+      const cart = await res.json();
+      const cartList = document.getElementById('cart-list');
+      cartList.innerHTML = '';
+      cart.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name} - $${item.price}`;
+        cartList.appendChild(li);
+      });
+    }
+
+    fetchProducts();
+    fetchCart();
+  </script>
+</body>
+</html>
